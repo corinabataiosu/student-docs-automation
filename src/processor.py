@@ -1,9 +1,9 @@
 from pathlib import Path
 import shutil
 
-from request_parser import parse_request
-from validator import validate_request
-from document_generator import generate_document, TEMPLATES
+from .request_parser import parse_request
+from .validator import validate_request
+from .document_generator import generate_document, TEMPLATES
 
 def process_request(
     input_dir: Path,

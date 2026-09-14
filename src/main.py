@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from request_parser import parse_request
-from validator import load_students, validate_request
-from processor import process_request
-from report_generator import generate_report
-from logger import setup_logger
+from .request_parser import parse_request
+from .validator import load_students, validate_request
+from .processor import process_request
+from .report_generator import generate_report
+from .logger import setup_logger
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
