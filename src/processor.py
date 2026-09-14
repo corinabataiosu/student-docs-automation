@@ -3,7 +3,7 @@ import shutil
 
 from request_parser import parse_request
 from validator import validate_request
-from document_generator import generate_student_certificate
+from document_generator import generate_document, TEMPLATES
 
 def process_request(
     input_dir: Path,
@@ -13,6 +13,8 @@ def process_request(
     template_path: Path,
     students: dict
 ):
+    results = []
+
     processed_dir.mkdir(parents=True, exist_ok=True)
     rejected_dir.mkdir(parents=True, exist_ok=True)
     documents_dir.mkdir(parents=True, exist_ok=True)
@@ -27,13 +29,20 @@ def process_request(
             if is_valid:
                 student = students[request["student_id"]]
 
-                if request["document_type"] == "student_certificate":
-                    document_name = (f"{request['request_id']}_student_certificate.docx")
+                document_type = request["document_type"]
+
+                if document_type in TEMPLATES:
+                    template = TEMPLATES[document_type]
+                    current_template_path = template_path / template
+
+                    document_name = (
+                        f"{request['request_id']}_{document_type}.docx"
+                    )
 
                     document_path = documents_dir / document_name
 
-                    generate_student_certificate(  
-                        template_path=template_path,
+                    generate_document(  
+                        template_path=current_template_path,
                         output_path=document_path,
                         student=student,
                         request=request,
@@ -43,6 +52,15 @@ def process_request(
 
                 destination = processed_dir / request_file.name
                 shutil.move(str(request_file), destination)
+
+                results.append({
+                "request_id": request["request_id"],
+                "student_id": request["student_id"],
+                "document_type": request["document_type"],
+                "request_date": request["request_date"],
+                "status": "Processed",
+                "details": f"Document generated: {document_name}",
+                })
 
                 print(f"VALID: {request['request_id']}")
                 print(f"Moved to: {destination}")
@@ -55,11 +73,23 @@ def process_request(
                 for error in errors:
                     print(f"  - {error}")
 
-                print(f"Moved to: {destination}")
+                results.append({
+                    "request_id": request["request_id"],
+                    "student_id": request["student_id"],
+                    "document_type": request["document_type"],
+                    "request_date": request["request_date"],
+                    "status": "Rejected",
+                    "details": "; ".join(errors),
+                })
 
+                print(f"Moved to: {destination}")
+            
         except ValueError as error:
             destination = rejected_dir / request_file.name
             shutil.move(str(request_file), destination)
 
             print(f"ERROR: {error}")
             print(f"Moved to: {destination}")
+
+    return results
+

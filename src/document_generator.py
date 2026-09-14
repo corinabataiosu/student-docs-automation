@@ -2,7 +2,14 @@ from pathlib import Path
 
 from docx import Document
 
-def generate_student_certificate(
+
+TEMPLATES = {
+    "student_certificate": "student_certificate.docx",
+    "scholarship_certificate": "scholarship_certificate.docx",
+}
+
+
+def generate_document(
     template_path: Path,
     output_path: Path,
     student: dict,
