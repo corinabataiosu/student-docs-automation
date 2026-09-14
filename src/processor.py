@@ -11,8 +11,10 @@ def process_request(
     rejected_dir: Path,
     documents_dir: Path,
     template_path: Path,
-    students: dict
+    students: dict, 
+    logger
 ):
+    logger.info(f"Starting request processing from {input_dir}")
     results = []
 
     processed_dir.mkdir(parents=True, exist_ok=True)
@@ -48,6 +50,8 @@ def process_request(
                         request=request,
                     )
 
+                    logger.info(f"Document generated for request {request['request_id']}: {document_path}")
+
                     print(f"Document generated: {document_path}")
 
                 destination = processed_dir / request_file.name
@@ -61,6 +65,8 @@ def process_request(
                 "status": "Processed",
                 "details": f"Document generated: {document_name}",
                 })
+
+                logger.info(f"Request {request['request_id']} processed successfully. Moved to: {destination}")
 
                 print(f"VALID: {request['request_id']}")
                 print(f"Moved to: {destination}")
@@ -82,14 +88,18 @@ def process_request(
                     "details": "; ".join(errors),
                 })
 
+                logger.warning(f"Request {request['request_id']} rejected due to validation errors. Moved to: {destination}")
+
                 print(f"Moved to: {destination}")
             
         except ValueError as error:
             destination = rejected_dir / request_file.name
             shutil.move(str(request_file), destination)
 
+            logger.error(f"Error processing request file {request_file.name}: {error}. Moved to: {destination}")
             print(f"ERROR: {error}")
             print(f"Moved to: {destination}")
 
-    return results
+    logger.info("Request processing completed.")
 
+    return results
